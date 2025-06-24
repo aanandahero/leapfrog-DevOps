@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Listings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background: #f8f9fa;
+        }
+        h1 {
+            color: #333;
+        }
+        .job {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Available Jobs</h1>
+
+    {% for job in jobs %}
+        <div class="job">
+            <h2>{{ job.title }}</h2>
+            <p><strong>Location:</strong> {{ job.location }}</p>
+            <p><strong>Posted:</strong> {{ job.created_at or "Not available" }}</p>
+            <form action="/delete-job/{{ job.id }}" method="POST">
+                <button type="submit" class="delete-btn">Delete Job</button>
+            </form>
+        </div>
+    {% else %}
+        <p>No jobs available.</p>
+    {% endfor %}
+</body>
+</html>
