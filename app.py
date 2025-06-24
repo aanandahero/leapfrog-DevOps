@@ -3,6 +3,8 @@ from datetime import datetime
 from flask import render_template
 from flask import render_template, redirect
 from datetime import datetime
+from flask import render_template, redirect
+
 
 
 
@@ -160,10 +162,28 @@ def add_job():
 
 
 @app.route('/delete-job/<int:job_id>', methods=['POST'])
-def delete_job(job_id):
+def delete_job_from(job_id):
     global job_data
     job_data = [job for job in job_data if job["id"] != job_id]
     return redirect('/view-jobs')
+
+@app.route('/edit-job/<int:job_id>', methods=['GET', 'POST'])
+def edit_job(job_id):
+    job = next((j for j in job_data if j["id"] == job_id), None)
+    if not job:
+        return "Job not found", 404
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        location = request.form.get('location')
+        if title and location:
+            job["title"] = title
+            job["location"] = location
+        return redirect('/view-jobs')
+
+    return render_template('edit_job.html', job=job)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
