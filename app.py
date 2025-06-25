@@ -1,37 +1,27 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template, redirect
 from datetime import datetime
-from flask import render_template
-from flask import render_template, redirect
-from datetime import datetime
-from flask import render_template, redirect
-
-
-
-
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "Welcome to DevJobs API!"
-
 import json
 import os
+
+app = Flask(__name__)
 
 DATA_FILE = 'jobs.json'
 
 def load_jobs():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as file:
-            return json.load(file)
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
     return []
 
 def save_jobs(jobs):
-    with open(DATA_FILE, 'w') as file:
-        json.dump(jobs, file, indent=2)
+    with open(DATA_FILE, 'w') as f:
+        json.dump(jobs, f, indent=2)
 
 job_data = load_jobs()
 
+@app.route('/')
+def home():
+    return "Welcome to DevJobs API!"
 
 @app.route('/jobs')
 def jobs():
@@ -60,19 +50,11 @@ def jobs():
         "jobs": paginated_jobs
     })
 
-
-
-
-
 @app.route('/job/<int:job_id>')
 def get_job(job_id):
-    job_data = [
-        {"id": 1, "title": "Backend Developer", "location": "Kathmandu"},
-        {"id": 2, "title": "DevOps Engineer", "location": "Remote"},
-    ]
-    for job in job_data:
-        if job["id"] == job_id:
-            return jsonify(job)
+    job = next((job for job in job_data if job["id"] == job_id), None)
+    if job:
+        return jsonify(job)
     return jsonify({"error": "Job not found"}), 404
 
 @app.route('/job', methods=['POST'])
@@ -89,21 +71,15 @@ def create_job():
     }
 
     job_data.append(new_job)
-    
-
+    save_jobs(job_data)
     return jsonify(new_job), 201
 
-
-
-@app.route('/job/<int:job_id>', methods=['DELETE'])
+@app.route('/delete-job/<int:job_id>', methods=['POST'])
 def delete_job(job_id):
-    for job in job_data:
-        if job["id"] == job_id:
-            job_data.remove(job)
-            save_jobs(job_data) 
-            return jsonify({"message": "Job deleted successfully"}), 200
-    return jsonify({"error": "Job not found"}), 404
-
+    global job_data
+    job_data = [job for job in job_data if job["id"] != job_id]
+    save_jobs(job_data)
+    return redirect('/view-jobs')
 
 @app.route('/job/<int:job_id>', methods=['PUT'])
 def update_job(job_id):
@@ -112,15 +88,13 @@ def update_job(job_id):
         if job['id'] == job_id:
             job['title'] = data.get('title', job['title'])
             job['location'] = data.get('location', job['location'])
-            save_jobs(job_data)  
+            save_jobs(job_data)
             return jsonify(job), 200
     return jsonify({"error": "Job not found"}), 404
 
 @app.route('/login', methods=['POST'])
 def login():
     credentials = request.get_json()
-
-    # Hardcoded credentials
     valid_username = "admin"
     valid_password = "password123"
 
@@ -154,18 +128,10 @@ def add_job():
         }
 
         job_data.append(new_job)
-        
-
+        save_jobs(job_data)
         return redirect('/view-jobs')
 
     return render_template('add_job.html')
-
-
-@app.route('/delete-job/<int:job_id>', methods=['POST'])
-def delete_job_from(job_id):
-    global job_data
-    job_data = [job for job in job_data if job["id"] != job_id]
-    return redirect('/view-jobs')
 
 @app.route('/edit-job/<int:job_id>', methods=['GET', 'POST'])
 def edit_job(job_id):
@@ -179,11 +145,10 @@ def edit_job(job_id):
         if title and location:
             job["title"] = title
             job["location"] = location
+            save_jobs(job_data)
         return redirect('/view-jobs')
 
     return render_template('edit_job.html', job=job)
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
