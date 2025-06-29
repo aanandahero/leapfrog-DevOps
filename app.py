@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 from datetime import datetime
 
 app = Flask(__name__)
@@ -7,37 +8,55 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jobs.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
-# --- Models ---
+# --- MODELS ---
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "location": self.location,
-            "created_at": self.created_at.isoformat()
-        }
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
-# --- Routes ---
+# --- SCHEMAS ---
+class JobSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Job
+        load_instance = True
+
+class UserSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
+        load_instance = True
+
+job_schema = JobSchema()
+jobs_schema = JobSchema(many=True)
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+
+# --- ROUTES ---
 @app.route('/')
 def home():
     return "Welcome to DevJobs API!"
 
-
+# --------------------
+# USER ROUTES
+# --------------------
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
+    if not data:
+        return jsonify({"error": "Missing request body"}), 400
+
+    errors = user_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
+
+    if 'username' not in data or 'password' not in data:
         return jsonify({"error": "Missing username or password"}), 400
 
     existing_user = User.query.filter_by(username=data['username']).first()
@@ -63,13 +82,18 @@ def login():
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
-
+# --------------------
+# JOB ROUTES (API)
+# --------------------
 @app.route('/jobs')
 def jobs():
     title_query = request.args.get('title')
     location_query = request.args.get('location')
-    page = int(request.args.get('page', 1))
-    limit = int(request.args.get('limit', 5))
+    try:
+        page = max(int(request.args.get('page', 1)), 1)
+        limit = max(int(request.args.get('limit', 5)), 1)
+    except ValueError:
+        return jsonify({"error": "Invalid page or limit"}), 400
 
     query = Job.query
     if title_query:
@@ -77,32 +101,55 @@ def jobs():
     if location_query:
         query = query.filter(Job.location.ilike(f"%{location_query}%"))
 
-    jobs = query.order_by(Job.created_at.desc()).paginate(page=page, per_page=limit)
-    
+    pagination = query.order_by(Job.created_at.desc()).paginate(page=page, per_page=limit)
+
     return jsonify({
         "page": page,
         "limit": limit,
-        "total": jobs.total,
-        "jobs": [job.to_dict() for job in jobs.items]
+        "total": pagination.total,
+        "jobs": jobs_schema.dump(pagination.items)
     })
 
 @app.route('/job/<int:job_id>')
 def get_job(job_id):
     job = Job.query.get(job_id)
-    if job:
-        return jsonify(job.to_dict())
-    return jsonify({"error": "Job not found"}), 404
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+    return job_schema.jsonify(job)
 
 @app.route('/job', methods=['POST'])
 def create_job():
     data = request.get_json()
-    if not data or 'title' not in data or 'location' not in data:
-        return jsonify({"error": "Missing title or location"}), 400
+    if not data:
+        return jsonify({"error": "Missing request body"}), 400
+
+    errors = job_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
 
     new_job = Job(title=data['title'], location=data['location'])
     db.session.add(new_job)
     db.session.commit()
-    return jsonify(new_job.to_dict()), 201
+    return job_schema.jsonify(new_job), 201
+
+@app.route('/job/<int:job_id>', methods=['PUT'])
+def update_job(job_id):
+    job = Job.query.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing request body"}), 400
+
+    errors = job_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
+
+    job.title = data.get('title', job.title)
+    job.location = data.get('location', job.location)
+    db.session.commit()
+    return job_schema.jsonify(job), 200
 
 @app.route('/delete-job/<int:job_id>', methods=['POST'])
 def delete_job(job_id):
@@ -113,17 +160,9 @@ def delete_job(job_id):
     db.session.commit()
     return redirect('/view-jobs')
 
-@app.route('/job/<int:job_id>', methods=['PUT'])
-def update_job(job_id):
-    data = request.get_json()
-    job = Job.query.get(job_id)
-    if not job:
-        return jsonify({"error": "Job not found"}), 404
-    job.title = data.get('title', job.title)
-    job.location = data.get('location', job.location)
-    db.session.commit()
-    return jsonify(job.to_dict()), 200
-
+# --------------------
+# HTML ADMIN VIEWS
+# --------------------
 @app.route('/view-jobs')
 def view_jobs():
     jobs = Job.query.order_by(Job.created_at.desc()).all()
@@ -154,6 +193,24 @@ def edit_job(job_id):
         return redirect('/view-jobs')
     return render_template('edit_job.html', job=job)
 
+# --------------------
+# ERROR HANDLERS
+# --------------------
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"error": "Bad Request"}), 400
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Resource not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Internal server error"}), 500
+
+# --------------------
+# APP STARTUP
+# --------------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
