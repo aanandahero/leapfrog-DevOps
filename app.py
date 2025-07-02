@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jobs.db'
@@ -20,7 +22,14 @@ class Job(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
 
 # --- SCHEMAS ---
 class JobSchema(ma.SQLAlchemyAutoSchema):
@@ -49,25 +58,21 @@ def home():
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "Missing request body"}), 400
-
-    errors = user_schema.validate(data)
-    if errors:
-        return jsonify(errors), 400
-
-    if 'username' not in data or 'password' not in data:
+    if not data or 'username' not in data or 'password' not in data:
         return jsonify({"error": "Missing username or password"}), 400
 
     existing_user = User.query.filter_by(username=data['username']).first()
     if existing_user:
         return jsonify({"error": "Username already exists"}), 409
 
-    new_user = User(username=data['username'], password=data['password'])
+    new_user = User(username=data['username'])
+    new_user.set_password(data['password'])
+
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({"message": "User registered successfully!"}), 201
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -76,8 +81,7 @@ def login():
         return jsonify({"error": "Missing username or password"}), 400
 
     user = User.query.filter_by(username=credentials['username']).first()
-
-    if user and user.password == credentials['password']:
+    if user and user.check_password(credentials['password']):
         return jsonify({"message": "Login successful!"}), 200
     else:
         return jsonify({"error": "Invalid credentials"}), 401
