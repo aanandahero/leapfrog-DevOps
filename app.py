@@ -17,7 +17,9 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -131,7 +133,11 @@ def create_job():
     if errors:
         return jsonify(errors), 400
 
-    new_job = Job(title=data['title'], location=data['location'])
+    new_job = Job(
+    title=data['title'], 
+    location=data['location'],
+    description=data.get('description'))
+
     db.session.add(new_job)
     db.session.commit()
     return job_schema.jsonify(new_job), 201
