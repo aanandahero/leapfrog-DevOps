@@ -10,11 +10,18 @@
     </style>
 </head>
 <body>
-    <form method="POST">
-        <h2>Edit Job</h2>
-        <input type="text" name="title" value="{{ job.title }}" required />
-        <input type="text" name="location" value="{{ job.location }}" required />
+    <form method="post">
+        <label>Title:</label>
+        <input type="text" name="title" value="{{ job.title }}" required><br>
+
+        <label>Location:</label>
+        <input type="text" name="location" value="{{ job.location }}" required><br>
+
+        <label>Description:</label>
+        <textarea name="description" rows="4" required>{{ job.description }}</textarea><br>
+
         <button type="submit">Update Job</button>
     </form>
+
 </body>
 </html>

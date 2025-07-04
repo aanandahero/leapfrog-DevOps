@@ -10,11 +10,18 @@
     </style>
 </head>
 <body>
-    <form method="POST">
-        <h2>Post a New Job</h2>
-        <input type="text" name="title" placeholder="Job Title" required />
-        <input type="text" name="location" placeholder="Job Location" required />
-        <button type="submit">Create Job</button>
+    <form method="post">
+        <label>Title:</label>
+        <input type="text" name="title" required><br>
+
+        <label>Location:</label>
+        <input type="text" name="location" required><br>
+
+        <label>Description:</label>
+        <textarea name="description" rows="4" required></textarea><br>
+
+        <button type="submit">Add Job</button>
     </form>
+
 </body>
 </html>
