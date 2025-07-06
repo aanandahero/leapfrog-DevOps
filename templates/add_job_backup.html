@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Job</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; background: #f1f1f1; }
+        form { background: white; padding: 2rem; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #007BFF; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <form method="post">
+        <label>Title:</label>
+        <input type="text" name="title" required><br>
+
+        <label>Location:</label>
+        <input type="text" name="location" required><br>
+
+        <label>Description:</label>
+        <textarea name="description" rows="4" required></textarea><br>
+
+        <button type="submit">Add Job</button>
+    </form>
+
+</body>
+</html>

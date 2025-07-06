@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Job</title>
+    <style>
+        body { font-family: Arial; background: #f1f1f1; padding: 2rem; }
+        form { background: white; padding: 2rem; max-width: 400px; margin: auto; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border-radius: 5px; border: 1px solid #ccc; }
+        button { background: #28a745; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <form method="post">
+        <label>Title:</label>
+        <input type="text" name="title" value="{{ job.title }}" required><br>
+
+        <label>Location:</label>
+        <input type="text" name="location" value="{{ job.location }}" required><br>
+
+        <label>Description:</label>
+        <textarea name="description" rows="4" required>{{ job.description }}</textarea><br>
+
+        <button type="submit">Update Job</button>
+    </form>
+
+</body>
+</html>

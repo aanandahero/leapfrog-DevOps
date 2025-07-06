@@ -183,13 +183,17 @@ def add_job():
     if request.method == 'POST':
         title = request.form.get('title')
         location = request.form.get('location')
-        if not title or not location:
-            return "Missing title or location", 400
-        new_job = Job(title=title, location=location)
+        description = request.form.get('description')
+
+        if not title or not location or not description:
+            return "Missing title, location, or description", 400
+
+        new_job = Job(title=title, location=location, description=description)
         db.session.add(new_job)
         db.session.commit()
         return redirect('/view-jobs')
     return render_template('add_job.html')
+
 
 @app.route('/edit-job/<int:job_id>', methods=['GET', 'POST'])
 def edit_job(job_id):
@@ -199,9 +203,11 @@ def edit_job(job_id):
     if request.method == 'POST':
         job.title = request.form.get('title')
         job.location = request.form.get('location')
+        job.description = request.form.get('description')
         db.session.commit()
         return redirect('/view-jobs')
     return render_template('edit_job.html', job=job)
+
 
 # --------------------
 # ERROR HANDLERS
