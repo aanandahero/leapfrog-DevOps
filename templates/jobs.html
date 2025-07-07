@@ -1,30 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Job Listings</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <h1 class="mb-4">Available Jobs</h1>
+{% extends "base.html" %}
 
-        {% for job in jobs %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h4 class="card-title">{{ job.title }}</h4>
-                    <h6 class="card-subtitle text-muted mb-2">{{ job.location }}</h6>
-                    <p class="card-text"><strong>Description:</strong> {{ job.description }}</p>
-                    <p class="card-text text-muted">Posted: {{ job.created_at or "Not available" }}</p>
+{% block title %}Job Listings - DevJobs{% endblock %}
 
-                    <a href="/edit-job/{{ job.id }}" class="btn btn-primary">Edit</a>
-                    <form action="/delete-job/{{ job.id }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </div>
-            </div>
-        {% else %}
-            <p>No jobs available.</p>
-        {% endfor %}
+{% block content %}
+<h1>Available Jobs</h1>
+
+{% for job in jobs %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ job.title }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{ job.location }}</h6>
+        <p class="card-text">{{ job.description }}</p>
+        <p class="card-text"><small class="text-muted">Posted: {{ job.created_at or "N/A" }}</small></p>
+
+        <a href="/edit-job/{{ job.id }}" class="btn btn-primary">Edit</a>
+        <form action="/delete-job/{{ job.id }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
     </div>
-</body>
-</html>
+</div>
+{% else %}
+<p>No jobs posted yet.</p>
+{% endfor %}
+{% endblock %}
