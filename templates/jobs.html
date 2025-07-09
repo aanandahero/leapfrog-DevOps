@@ -7,17 +7,17 @@
 
 {% for job in jobs %}
 <div class="card mb-3">
-    <div class="card-body">
-        <h5 class="card-title">{{ job.title }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{ job.location }}</h6>
-        <p class="card-text">{{ job.description }}</p>
-        <p class="card-text"><small class="text-muted">Posted: {{ job.created_at or "N/A" }}</small></p>
+  <div class="card-body">
+    <h5 class="card-title">{{ job.title }}</h5>
+    <h6 class="card-subtitle mb-2 text-muted">{{ job.location }}</h6>
+    <p class="card-text">{{ job.description }}</p>
+    <p class="card-text"><small class="text-muted">Posted: {{ job.created_at or "N/A" }}</small></p>
 
-        <a href="/edit-job/{{ job.id }}" class="btn btn-primary">Edit</a>
-        <form action="/delete-job/{{ job.id }}" method="POST" style="display:inline;">
-            <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
-    </div>
+    <a href="/edit-job/{{ job.id }}" class="btn btn-primary">Edit</a>
+    <form action="/delete-job/{{ job.id }}" method="POST" style="display:inline;">
+      <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+  </div>
 </div>
 {% else %}
 <p>No jobs posted yet.</p>

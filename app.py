@@ -55,7 +55,9 @@ users_schema = UserSchema(many=True)
 # --- ROUTES ---
 @app.route('/')
 def home():
-    return "Welcome to DevJobs API!"
+    jobs = Job.query.order_by(Job.created_at.desc()).limit(10).all()
+    return render_template('home.html', jobs=jobs)
+
 
 # --------------------
 # USER ROUTES
@@ -95,12 +97,7 @@ def login():
         return redirect(url_for('home'))
 
 
-# ---------------TEST-----
-@app.route('/test-flash')
-def test_flash():
-    flash("This is a test flash message!", "success")
-    return redirect('/view-jobs')
-
+# --------------------
 # JOB ROUTES (API)
 # --------------------
 @app.route('/jobs')

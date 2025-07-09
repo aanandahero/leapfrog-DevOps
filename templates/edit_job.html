@@ -5,18 +5,18 @@
 {% block content %}
 <h1>Edit Job</h1>
 <form method="POST">
-    <div class="mb-3">
-        <label class="form-label">Title</label>
-        <input type="text" class="form-control" name="title" value="{{ job.title }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Location</label>
-        <input type="text" class="form-control" name="location" value="{{ job.location }}" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Description</label>
-        <textarea class="form-control" name="description" required>{{ job.description }}</textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Update</button>
+  <div class="mb-3">
+    <label class="form-label">Title</label>
+    <input type="text" class="form-control" name="title" value="{{ job.title }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Location</label>
+    <input type="text" class="form-control" name="location" value="{{ job.location }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <textarea class="form-control" name="description" required>{{ job.description }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Update Job</button>
 </form>
 {% endblock %}

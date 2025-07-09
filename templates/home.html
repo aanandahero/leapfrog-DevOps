@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}DevJobs - Home{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">Latest Job Listings</h1>
+
+  {% if jobs %}
+    <div class="row">
+      {% for job in jobs %}
+        <div class="col-md-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ job.title }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{ job.location }}</h6>
+              <p class="card-text">
+                {{ job.description[:120] if job.description else "No description available." }}
+              </p>
+
+              <p class="text-muted small">Posted: {{ job.created_at.strftime('%Y-%m-%d') if job.created_at else "N/A" }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No jobs found.</p>
+  {% endif %}
+{% endblock %}
