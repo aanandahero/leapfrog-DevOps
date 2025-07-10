@@ -61,6 +61,7 @@ def home():
 
 # --------------------
 # USER ROUTES
+
 # --------------------
 @app.route('/register', methods=['POST'])
 def register():
@@ -187,8 +188,18 @@ def delete_job(job_id):
 # --------------------
 @app.route('/view-jobs')
 def view_jobs():
-    jobs = Job.query.order_by(Job.created_at.desc()).all()
+    title_query = request.args.get('title')
+    location_query = request.args.get('location')
+
+    query = Job.query
+    if title_query:
+        query = query.filter(Job.title.ilike(f"%{title_query}%"))
+    if location_query:
+        query = query.filter(Job.location.ilike(f"%{location_query}%"))
+
+    jobs = query.order_by(Job.created_at.desc()).all()
     return render_template('jobs.html', jobs=jobs)
+
 
 @app.route('/add-job', methods=['GET', 'POST'])
 def add_job():
