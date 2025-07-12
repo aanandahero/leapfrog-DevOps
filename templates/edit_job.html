@@ -1,21 +1,20 @@
 {% extends "base.html" %}
-
 {% block title %}Edit Job - DevJobs{% endblock %}
 
 {% block content %}
-<h1>Edit Job</h1>
-<form method="POST">
+<h1 class="mb-4">Edit Job</h1>
+<form method="POST" class="card p-4 shadow-sm">
   <div class="mb-3">
     <label class="form-label">Title</label>
-    <input type="text" class="form-control" name="title" value="{{ job.title }}" required>
+    <input type="text" name="title" class="form-control" value="{{ job.title }}" required>
   </div>
   <div class="mb-3">
     <label class="form-label">Location</label>
-    <input type="text" class="form-control" name="location" value="{{ job.location }}" required>
+    <input type="text" name="location" class="form-control" value="{{ job.location }}" required>
   </div>
   <div class="mb-3">
     <label class="form-label">Description</label>
-    <textarea class="form-control" name="description" required>{{ job.description }}</textarea>
+    <textarea name="description" class="form-control" rows="4" required>{{ job.description }}</textarea>
   </div>
   <button type="submit" class="btn btn-primary">Update Job</button>
 </form>
