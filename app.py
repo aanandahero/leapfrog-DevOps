@@ -186,6 +186,14 @@ def delete_job(job_id):
 # --------------------
 # HTML ADMIN VIEWS
 # --------------------
+@app.route('/job-detail/<int:job_id>')
+def job_detail(job_id):
+    job = Job.query.get(job_id)
+    if not job:
+        flash('Job not found.', 'danger')
+        return redirect('/view-jobs')
+    return render_template('job_detail.html', job=job)
+
 @app.route('/view-jobs')
 def view_jobs():
     title_query = request.args.get('title')
